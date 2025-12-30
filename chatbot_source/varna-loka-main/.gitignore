@@ -1,0 +1,36 @@
+# --- System Files ---
+.DS_Store
+Thumbs.db
+
+# --- IDEs & Editors ---
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# --- Environment / Secrets ---
+.env
+.env.local
+.env.*.local
+
+# --- Node (NestJS & React) ---
+**/node_modules/
+**/dist/
+**/npm-debug.log*
+**/yarn-debug.log*
+**/package-lock.json
+
+# --- Flutter / Dart ---
+**/build/
+**/.dart_tool/
+**/.packages
+**/.pub-cache/
+**/.pub/
+**/pubspec.lock
+**/ios/Flutter/Generated.xcconfig
+**/android/local.properties
+
+# --- Documentation ---
+**/docs/site/

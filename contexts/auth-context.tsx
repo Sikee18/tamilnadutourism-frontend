@@ -38,7 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (redirectTo) {
         router.push(redirectTo)
       } else if (role === "guide") {
-        router.push("/guide/dashboard")
+        router.push("/dashboard/guide")
+      } else if (role === "tourist") {
+        router.push("/dashboard/tourist")
       } else {
         router.push("/")
       }

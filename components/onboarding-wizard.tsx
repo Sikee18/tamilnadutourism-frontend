@@ -90,11 +90,9 @@ export function OnboardingWizard() {
     const [isAnimating, setIsAnimating] = useState(false)
 
     useEffect(() => {
-        // Only show for authenticated tourists who haven't completed onboarding
-        if (isAuthenticated && userRole === "tourist") {
-            const hasCompleted = localStorage.getItem("tn_tourism_onboarding_completed")
-            if (!hasCompleted) {
-                // Small delay to ensure smooth entrance
+        if (isAuthenticated) {
+            // For Tourists: Show only if tourist (removed completed check to show every time)
+            if (userRole === "tourist") {
                 setTimeout(() => setIsOpen(true), 1000)
             }
         }
@@ -160,7 +158,7 @@ export function OnboardingWizard() {
     }
 
     const completeOnboarding = () => {
-        localStorage.setItem("tn_tourism_onboarding_completed", "true")
+        // Removed setItem to allow showing again next time
         setIsOpen(false)
     }
 

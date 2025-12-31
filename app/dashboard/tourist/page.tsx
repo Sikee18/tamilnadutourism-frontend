@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
+import { OnboardingWizard } from "@/components/onboarding-wizard"
 import {
   User,
   Heart,
@@ -18,6 +19,8 @@ import {
   UtensilsCrossed,
   Church,
   Calendar,
+  ClipboardCheck,
+  Globe,
 } from "lucide-react"
 
 const interests = [
@@ -31,7 +34,7 @@ const recommendedPlaces = [
   {
     id: "mahabalipuram",
     name: "Mahabalipuram",
-    image: "https://source.unsplash.com/featured/?Mahabalipuram,Temple",
+    image: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?q=80&w=800&auto=format&fit=crop",
     crowdLevel: "moderate",
     bestTime: "Early Morning",
     guideAvailable: true,
@@ -40,16 +43,16 @@ const recommendedPlaces = [
   {
     id: "thanjavur",
     name: "Thanjavur",
-    image: "https://source.unsplash.com/featured/?Thanjavur Temple,Architecture",
-    crowdLevel: "calm",
-    bestTime: "Afternoon",
+    image: "https://images.unsplash.com/photo-1603766806347-54cdf3745953?fm=jpg&q=80&w=800&ixlib=rb-4.1.0",
+    crowdLevel: "lively",
+    bestTime: "Morning",
     guideAvailable: true,
-    tags: ["Temple", "Culture"],
+    tags: ["Temples", "Culture"],
   },
   {
     id: "chettinad",
     name: "Chettinad",
-    image: "https://source.unsplash.com/featured/?Chettinad House,Heritage",
+    image: "https://images.unsplash.com/photo-1660915223003-7df0db2e57d8?fm=jpg&q=80&w=800&ixlib=rb-4.1.0",
     crowdLevel: "calm",
     bestTime: "Any Time",
     guideAvailable: true,
@@ -62,14 +65,14 @@ const crowdAlternatives = [
     id: "yelagiri",
     name: "Yelagiri Hills",
     reason: "Similar hill station experience, significantly less crowded",
-    image: "https://source.unsplash.com/featured/?Yelagiri,Hills",
+    image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop",
     crowdLevel: "calm",
   },
   {
     id: "valparai",
     name: "Valparai",
     reason: "Tea estates and wildlife without the tourist crowds",
-    image: "https://source.unsplash.com/featured/?Valparai,Tea Estate",
+    image: "https://images.unsplash.com/photo-1548695029-7973d092e079?q=80&w=800&auto=format&fit=crop",
     crowdLevel: "calm",
   },
 ]
@@ -101,30 +104,131 @@ function CrowdIndicator({ level, size = "default" }: { level: string; size?: "de
   )
 }
 
+const TOURIST_PLEDGE = [
+  "I pledge to respect the local culture, traditions, and dress codes of Tamil Nadu.",
+  "I will keep the tourist sites clean and not litter (Eco-Tourism Responsibility).",
+  "I will protect heritage monuments and not touch or damage ancient sculptures.",
+  "I have saved local emergency contact numbers on my phone.",
+  "I will be polite and respectful to fellow travelers and locals.",
+  "I will support local artisans and businesses ethically.",
+  "I verify that I am physically fit for the activities I plan to undertake.",
+]
+
 export default function TouristDashboard() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>(["culture", "food"])
   const [showCrowdAlert, setShowCrowdAlert] = useState(true)
   const [showBestTimes, setShowBestTimes] = useState(false)
 
+  // Checklist State
+  // Always start with checklist shown (Pledge first)
+  const [showChecklist, setShowChecklist] = useState(true)
+  const [isPledgeCompleted, setIsPledgeCompleted] = useState(false)
+  const [checklistAnswers, setChecklistAnswers] = useState<boolean[]>(new Array(7).fill(false))
+
+  // Removed useEffect checking sessionStorage to force show every time
+
   const toggleInterest = (id: string) => {
     setSelectedInterests((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
   }
 
+  const toggleChecklist = (index: number) => {
+    const newAnswers = [...checklistAnswers]
+    newAnswers[index] = !newAnswers[index]
+    setChecklistAnswers(newAnswers)
+  }
+
+  const allChecked = checklistAnswers.every(Boolean)
+
+  const submitChecklist = () => {
+    if (allChecked) {
+      // Don't save to session/local storage so it asks every time
+      setShowChecklist(false)
+      // Enable Wizard
+      setIsPledgeCompleted(true)
+    }
+  }
+
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background relative">
       <Navigation />
 
-      <div className="pt-24 pb-16">
-        <div className="container mx-auto px-6">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-12">
-            <div>
-              <h1 className="text-3xl font-serif font-light text-foreground mb-2">Welcome Back, Traveler</h1>
-              <p className="text-muted-foreground font-sans">Discover your next Tamil Nadu adventure</p>
+      {/* RESPONSIBLE TOURIST PLEDGE MODAL */}
+      {showChecklist && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-background w-full max-w-lg rounded-lg shadow-2xl border border-border p-6 md:p-8 animate-in fade-in zoom-in duration-300">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Globe className="w-8 h-8 text-primary" />
+              </div>
+              <h2 className="text-2xl font-serif text-foreground mb-2">Responsible Tourist Pledge</h2>
+              <p className="text-muted-foreground font-sans text-sm">
+                To ensure a safe and respectful experience for everyone, please confirm the following before proceeding.
+              </p>
             </div>
+
+            <div className="space-y-4 mb-8">
+              {TOURIST_PLEDGE.map((item, index) => (
+                <label
+                  key={index}
+                  className={`flex items-start gap-3 p-3 rounded-md cursor-pointer transition-colors border ${checklistAnswers[index] ? "bg-primary/5 border-primary/30" : "bg-card border-border hover:bg-muted"
+                    }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checklistAnswers[index]}
+                    onChange={() => toggleChecklist(index)}
+                    className="mt-1 w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                  />
+                  <span className={`text-sm font-sans ${checklistAnswers[index] ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                    {item}
+                  </span>
+                </label>
+              ))}
+            </div>
+
+            <button
+              onClick={submitChecklist}
+              disabled={!allChecked}
+              className={`w-full py-4 rounded-md font-bold uppercase tracking-widest text-sm transition-all ${allChecked
+                ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg"
+                : "bg-muted text-muted-foreground cursor-not-allowed"
+                }`}
+            >
+              {allChecked ? "I Pledge & Enter Dashboard" : "Accept Pledge to Proceed"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className={`relative ${showChecklist ? "blur-sm pointer-events-none" : ""}`}>
+        {/* Hero Section */}
+        <div className="relative h-[40vh] min-h-[300px] w-full">
+          <Image
+            src="https://images.unsplash.com/photo-1582510003544-4d00b785e214?q=80&w=1920&auto=format&fit=crop"
+            alt="Tamil Nadu Tourism"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+          <div className="absolute bottom-0 left-0 w-full p-6">
+            <div className="container mx-auto">
+              <h1 className="text-4xl md:text-5xl font-serif font-light text-foreground mb-2 drop-shadow-lg">
+                Welcome Back, Traveler
+              </h1>
+              <p className="text-lg text-muted-foreground font-sans max-w-xl drop-shadow-md">
+                Discover your next Tamil Nadu adventure. The journey awaits.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="container mx-auto px-6 py-8">
+          {/* Header Controls */}
+          <div className="flex justify-end mb-8">
             <Link
               href="/dashboard/tourist/profile"
-              className="flex items-center gap-3 px-4 py-2 bg-card border border-border rounded-sm hover:bg-muted transition-colors"
+              className="flex items-center gap-3 px-4 py-2 bg-card border border-border rounded-sm hover:bg-muted transition-colors shadow-sm"
             >
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                 <User className="w-5 h-5 text-primary" />
@@ -148,8 +252,8 @@ export default function TouristDashboard() {
                     key={interest.id}
                     onClick={() => toggleInterest(interest.id)}
                     className={`flex items-center gap-2 px-5 py-3 rounded-sm border transition-all font-sans ${isSelected
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card text-foreground border-border hover:border-primary/50"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-foreground border-border hover:border-primary/50"
                       }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -374,6 +478,7 @@ export default function TouristDashboard() {
         </div>
       </div>
 
+      {isPledgeCompleted && <OnboardingWizard />}
       <Footer />
     </main>
   )

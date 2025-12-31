@@ -161,6 +161,12 @@ export function Navigation() {
                     {userRole === "tourist" && (
                       <>
                         <Link
+                          href="/dashboard/tourist"
+                          className="block px-4 py-2 text-sm font-sans text-foreground hover:bg-muted transition-colors"
+                        >
+                          My Dashboard
+                        </Link>
+                        <Link
                           href="/tourist/requests"
                           className="block px-4 py-2 text-sm font-sans text-foreground hover:bg-muted transition-colors"
                         >

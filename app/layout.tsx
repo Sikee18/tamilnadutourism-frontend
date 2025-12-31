@@ -41,7 +41,6 @@ export const metadata: Metadata = {
   },
 }
 
-import { OnboardingWizard } from "@/components/onboarding-wizard"
 import { ChatWidget } from "@/components/chat-widget"
 
 // ... imports
@@ -55,7 +54,6 @@ export default function RootLayout({
     <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
       <body className="font-sans antialiased">
         <AuthProvider>
-          <OnboardingWizard />
           <ChatWidget />
           {children}
         </AuthProvider>

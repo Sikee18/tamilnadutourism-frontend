@@ -1,286 +1,175 @@
 "use client"
 
-import { motion, useScroll, useTransform } from "framer-motion"
-import { Users, Clock, AlertTriangle, NavigationIcon, MapPin } from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
-import { useRef } from "react"
+import { Navigation } from "@/components/navigation"
+import { Footer } from "@/components/footer"
+import { getDistrictDetails, type DistrictDetailData } from "@/lib/tourism-data"
+import { motion } from "framer-motion"
+import { MapPin, Star, Compass, Info } from "lucide-react"
 
-type CrowdLevel = "calm" | "moderate" | "busy" | "very-busy"
-
-interface Destination {
-  id: string
-  name: string
-  subtitle: string
-  description: string
-  image: string
-  crowdLevel: CrowdLevel
-  bestTime: string
-  category: string
-}
-
-interface DestinationContentProps {
-  destination: Destination
-}
-
-function CrowdIndicator({ level }: { level: CrowdLevel }) {
-  const config = {
-    calm: { label: "Calm", class: "crowd-calm" },
-    moderate: { label: "Moderate", class: "crowd-moderate" },
-    busy: { label: "Busy", class: "crowd-busy" },
-    "very-busy": { label: "Very Busy", class: "crowd-very-busy" },
+interface Props {
+  slug: string
+  districtInfo: {
+    name: string
+    region: string
+    identity: string
   }
-  const { label, class: className } = config[level]
+}
+
+export function DestinationContent({ slug, districtInfo }: Props) {
+  // Get detailed content
+  const details = getDistrictDetails(slug)
 
   return (
-    <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${className}`}>
-      <Users className="w-4 h-4" />
-      <span className="text-sm font-medium">{label}</span>
-    </span>
-  )
-}
+    <main className="min-h-screen bg-background text-foreground">
+      <Navigation />
 
-function MicroCrowdHeatmap({ destinationName }: { destinationName: string }) {
-  const zones = [
-    { id: "entrance", label: "Entrance", crowd: "moderate", x: "20%", y: "30%" },
-    { id: "main-area", label: "Main Area", crowd: "busy", x: "50%", y: "40%" },
-    { id: "inner-sanctum", label: "Inner Sanctum", crowd: "very-busy", x: "50%", y: "60%" },
-    { id: "garden", label: "Garden", crowd: "calm", x: "75%", y: "35%" },
-  ]
-
-  const colorMap: Record<string, string> = {
-    calm: "fill-emerald-500/40 stroke-emerald-500",
-    moderate: "fill-amber-500/40 stroke-amber-500",
-    busy: "fill-orange-500/40 stroke-orange-500",
-    "very-busy": "fill-red-500/40 stroke-red-500",
-  }
-
-  return (
-    <div className="p-6 bg-gradient-to-br from-card to-muted/20 rounded-lg border border-border">
-      <h3 className="text-lg font-medium text-foreground mb-2">Micro Crowd Heatmap</h3>
-      <p className="text-xs text-muted-foreground mb-4">Simulated Crowd Insight (Pilot Feature)</p>
-
-      <div className="relative w-full aspect-video bg-muted/30 rounded-lg border border-border overflow-hidden">
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          {/* Simple monument outline */}
-          <rect x="30" y="20" width="40" height="60" fill="hsl(var(--muted))" stroke="hsl(var(--border))" />
-          <polygon points="30,20 50,5 70,20" fill="hsl(var(--muted))" stroke="hsl(var(--border))" />
-
-          {/* Crowd zones */}
-          {zones.map((zone) => (
-            <g key={zone.id}>
-              <circle cx={zone.x} cy={zone.y} r="8" className={colorMap[zone.crowd]} strokeWidth="1.5" opacity="0.8" />
-            </g>
-          ))}
-        </svg>
-
-        {/* Zone labels with tooltips */}
-        <div className="absolute inset-0 pointer-events-none">
-          {zones.map((zone) => (
-            <div
-              key={zone.id}
-              className="absolute group cursor-pointer pointer-events-auto"
-              style={{ left: zone.x, top: zone.y }}
-            >
-              <div className="absolute hidden group-hover:block bg-black/90 text-white text-xs px-2 py-1 rounded whitespace-nowrap -translate-x-1/2 -translate-y-full -mt-2">
-                {zone.label}: {zone.crowd}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-3 text-xs">
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-emerald-500/40 border border-emerald-500" />
-          <span className="text-muted-foreground">Calm</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-amber-500/40 border border-amber-500" />
-          <span className="text-muted-foreground">Moderate</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-orange-500/40 border border-orange-500" />
-          <span className="text-muted-foreground">Busy</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-red-500/40 border border-red-500" />
-          <span className="text-muted-foreground">Very Busy</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export function DestinationContent({ destination }: DestinationContentProps) {
-  const heroRef = useRef<HTMLElement>(null)
-  const { scrollY } = useScroll()
-  const y = useTransform(scrollY, [0, 500], [0, 150])
-
-  const getAlternatives = (id: string, category: string) => {
-    const alternatives: Record<
-      string,
-      Array<{ name: string; reason: string; slug: string; crowdLevel: CrowdLevel }>
-    > = {
-      madurai: [
-        { name: "Thanjavur", reason: "Similar Chola temple architecture", slug: "thanjavur", crowdLevel: "calm" },
-        { name: "Srivilliputhur", reason: "Quieter pilgrimage experience", slug: "srivilliputhur", crowdLevel: "calm" },
-        { name: "Tiruchendur", reason: "Coastal temple with fewer crowds", slug: "tiruchendur", crowdLevel: "calm" },
-      ],
-      ooty: [
-        { name: "Yercaud", reason: "Serene hill station alternative", slug: "yercaud", crowdLevel: "calm" },
-        {
-          name: "Kodaikanal",
-          reason: "Less commercialized hill experience",
-          slug: "kodaikanal",
-          crowdLevel: "moderate",
-        },
-        { name: "Valparai", reason: "Pristine tea estates", slug: "valparai", crowdLevel: "calm" },
-      ],
-      mahabalipuram: [
-        { name: "Kanchipuram", reason: "Rich temple architecture", slug: "kanchipuram", crowdLevel: "moderate" },
-        { name: "Pondicherry", reason: "Coastal heritage town", slug: "pondicherry", crowdLevel: "moderate" },
-      ],
-    }
-    return alternatives[id] || []
-  }
-
-  const shouldShowRerouting = destination.crowdLevel === "busy" || destination.crowdLevel === "very-busy"
-  const alternatives = shouldShowRerouting ? getAlternatives(destination.id, destination.category) : []
-
-  return (
-    <>
-      {/* Hero with parallax */}
-      <section ref={heroRef} className="relative h-[70vh] min-h-[600px] overflow-hidden">
-        <motion.div style={{ y }} className="absolute inset-0">
-          <Image
-            src={destination.image || `https://source.unsplash.com/featured/?${destination.name},landmark`}
-            alt={destination.name}
-            fill
-            className="object-cover"
-            priority
+      {/* Hero Section */}
+      <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src={details.images[0]}
+            alt={districtInfo.name}
+            className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-        </motion.div>
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+        </div>
 
-        <div className="relative h-full container mx-auto px-6 flex flex-col justify-end pb-20">
+        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto mt-20">
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            transition={{ duration: 0.8 }}
           >
-            <span className="inline-block text-temple-gold text-sm tracking-widest uppercase mb-4">
-              {destination.subtitle}
+            <span className="inline-block py-1 px-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs tracking-widest uppercase mb-4">
+              {districtInfo.region} Region
             </span>
-            <h1 className="text-5xl md:text-7xl font-serif font-light text-white mb-6">{destination.name}</h1>
-            <div className="flex flex-wrap items-center gap-4 mb-6">
-              <CrowdIndicator level={destination.crowdLevel} />
-              <span className="inline-flex items-center gap-2 px-4 py-2 bg-black/40 backdrop-blur-sm rounded-full text-white text-sm">
-                <Clock className="w-4 h-4" />
-                Best Time: {destination.bestTime}
-              </span>
-            </div>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif text-white mb-6">
+              {districtInfo.name}
+            </h1>
+            <p className="text-lg md:text-xl text-white/90 font-light max-w-2xl mx-auto leading-relaxed">
+              {districtInfo.identity}
+            </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Content */}
-      <div className="py-20 bg-background">
-        <div className="container mx-auto px-6 max-w-4xl">
-          {/* Travel Advisory */}
-          {shouldShowRerouting && (
+      {/* Overview & Highlights Grid */}
+      <section className="py-20 container mx-auto px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+          {/* Main Content - Left */}
+          <div className="lg:col-span-8 space-y-12">
+
+            {/* About */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-12 p-6 bg-amber-500/10 border border-amber-500/30 rounded-lg"
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="prose prose-lg dark:prose-invert max-w-none"
             >
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="text-lg font-medium text-foreground mb-2">High Traffic Alert</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    This destination is currently experiencing high visitor traffic. Consider visiting during off-peak
-                    hours or explore the quieter alternatives suggested below.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Description */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-16">
-            <p className="text-xl text-foreground leading-relaxed">{destination.description}</p>
-          </motion.div>
-
-          {/* Micro Crowd Heatmap */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mb-16"
-          >
-            <MicroCrowdHeatmap destinationName={destination.name} />
-          </motion.div>
-
-          {/* Rerouting Alternatives */}
-          {alternatives.length > 0 && (
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="mb-16 p-8 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-border"
-            >
-              <div className="flex items-center gap-3 mb-6">
-                <NavigationIcon className="w-6 h-6 text-primary" />
-                <h2 className="text-2xl font-serif font-light text-foreground">Prefer a Quieter Experience?</h2>
-              </div>
-              <p className="text-muted-foreground mb-6">
-                {destination.name} is very busy right now. Consider these similar destinations for a calmer experience:
+              <h2 className="text-3xl font-light mb-6 flex items-center gap-3">
+                <Info className="w-6 h-6 text-primary" />
+                About {districtInfo.name}
+              </h2>
+              <p className="text-muted-foreground leading-loose text-lg">
+                {details.description}
               </p>
+            </motion.div>
 
-              <div className="space-y-4">
-                {alternatives.map((alt) => (
-                  <motion.div
-                    key={alt.slug}
-                    whileHover={{ x: 4 }}
-                    className="p-4 bg-card rounded-lg border border-border hover:border-primary transition-colors cursor-pointer"
+            {/* Highlights */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              <h3 className="text-2xl font-light mb-6 flex items-center gap-3">
+                <Star className="w-6 h-6 text-primary" />
+                Key Highlights
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {details.highlights.map((highlight, idx) => (
+                  <div
+                    key={idx}
+                    className="group p-4 rounded-xl bg-card border border-border/50 hover:border-primary/50 transition-colors"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-medium text-foreground mb-1">{alt.name}</h3>
-                        <p className="text-sm text-muted-foreground mb-2">{alt.reason}</p>
-                        <div className="flex items-center gap-4 text-sm">
-                          <span className="text-emerald-500 flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            Currently {alt.crowdLevel === "calm" ? "Calm" : "Moderate"}
-                          </span>
-                        </div>
-                      </div>
-                      <Link
-                        href={`/destinations/${alt.slug}`}
-                        className="ml-4 px-4 py-2 bg-primary text-primary-foreground text-sm rounded-sm hover:bg-primary/90 transition-colors"
-                      >
-                        Explore
-                      </Link>
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1 w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                      <span className="text-card-foreground/90 group-hover:text-primary transition-colors">
+                        {highlight}
+                      </span>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
-            </motion.section>
-          )}
+            </motion.div>
 
-          {/* Back to Explore */}
-          <div className="text-center">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-sm hover:bg-primary/90 transition-colors"
-            >
-              <MapPin className="w-4 h-4" />
-              Back to Explore
-            </Link>
+            {/* Gallery Preview (Small Grid) */}
+            <div className="grid grid-cols-2 gap-4 mt-8">
+              {details.images.slice(1, 3).map((img, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  className="relative aspect-video rounded-2xl overflow-hidden group"
+                >
+                  <img
+                    src={img}
+                    alt={`${districtInfo.name} view ${idx + 2}`}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                </motion.div>
+              ))}
+            </div>
+
+          </div>
+
+          {/* Sidebar - Right */}
+          <div className="lg:col-span-4 space-y-8">
+
+            {/* Underrated Gems Widget */}
+            {details.underrated.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="bg-zinc-900/5 dark:bg-zinc-50/5 p-6 rounded-2xl border border-border/50"
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <Compass className="w-5 h-5 text-amber-500" />
+                  <h3 className="text-lg font-medium text-amber-500 uppercase tracking-widest">Hidden Gems</h3>
+                </div>
+
+                <div className="space-y-6">
+                  {details.underrated.map((gem, idx) => (
+                    <div key={idx} className="relative pl-6 border-l-2 border-primary/20 hover:border-primary transition-colors">
+                      <h4 className="font-medium text-foreground">{gem.name}</h4>
+                      <p className="text-sm text-muted-foreground mt-1">{gem.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Map Placeholder or Additional Info */}
+            <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10">
+              <MapPin className="w-8 h-8 text-primary mb-4" />
+              <h3 className="text-xl font-light mb-2">Getting There</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {districtInfo.name} is well connected by road and rail. Plan your trip to explore the {districtInfo.region.toLowerCase()} beauty of Tamil Nadu.
+              </p>
+              <button className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+                View on Map
+              </button>
+            </div>
+
           </div>
         </div>
-      </div>
-    </>
+      </section>
+
+      <Footer />
+    </main>
   )
 }

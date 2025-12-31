@@ -25,28 +25,28 @@ const incomingRequests = [
     id: "1",
     tourist: {
       name: "Sarah Johnson",
-      photo: "https://source.unsplash.com/featured/?woman,portrait,tourist",
+      photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200&auto=format&fit=crop",
       country: "United States",
     },
-    destination: "Madurai",
-    date: "Dec 28, 2025",
+    destination: "Kanyakumari",
+    date: "Dec 30, 2025",
     duration: "Full Day",
-    interests: ["Temple Architecture", "Local Food"],
-    message: "I'd love to learn about the history of Meenakshi Temple and try authentic local cuisine.",
+    interests: ["Sunrise View", "History"],
+    message: "Looking for a guide to explain the history of Vivekananda Rock Memorial.",
     status: "pending",
   },
   {
     id: "2",
     tourist: {
       name: "Hans Mueller",
-      photo: "https://source.unsplash.com/featured/?man,portrait,tourist",
+      photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop",
       country: "Germany",
     },
-    destination: "Thanjavur",
-    date: "Jan 2, 2026",
+    destination: "Mahabalipuram",
+    date: "Jan 5, 2026",
     duration: "Half Day",
-    interests: ["Classical Music", "Heritage"],
-    message: "Interested in the Chola bronze sculptures and traditional music history.",
+    interests: ["Architecture", "Sculpture"],
+    message: "Interested in the Shore Temple and Five Rathas.",
     status: "pending",
   },
 ]
@@ -100,7 +100,7 @@ export default function GuideDashboard() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-12">
             <div className="flex items-center gap-4">
               <div className="relative w-16 h-16 rounded-full overflow-hidden ring-2 ring-secondary/20">
-                <Image src="https://source.unsplash.com/featured/?Indian Guide,Man,Portrait" alt="Guide Photo" fill className="object-cover" />
+                <Image src="https://images.unsplash.com/photo-1622325996025-06048d087df2?q=80&w=200&auto=format&fit=crop" alt="Guide Photo" fill className="object-cover" />
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -113,11 +113,15 @@ export default function GuideDashboard() {
                 </div>
                 <div className="flex items-center gap-2 text-sm font-sans text-muted-foreground">
                   <MapPin className="w-4 h-4" />
-                  <span>Madurai & Thanjavur Region</span>
+                  <span>Tamil Nadu Certified Guide</span>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <button className="hidden md:flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-sans font-medium rounded-sm hover:bg-primary/90 transition-all shadow-sm">
+                <CheckCircle className="w-4 h-4" />
+                Post New Experience
+              </button>
               <button className="p-2 bg-card border border-border rounded-sm hover:bg-muted transition-colors relative">
                 <Bell className="w-5 h-5 text-foreground" />
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-xs font-sans rounded-full flex items-center justify-center">
@@ -271,7 +275,7 @@ export default function GuideDashboard() {
                 <div className="space-y-3 text-sm font-sans">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Districts</span>
-                    <span className="text-foreground">Madurai, Thanjavur</span>
+                    <span className="text-foreground">Chennai, Mahabalipuram, Kanyakumari</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Languages</span>

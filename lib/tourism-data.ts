@@ -425,16 +425,15 @@ export const EXPERIENCE_CATEGORIES = {
   },
 } as const
 
-export function getDistrictDetails(districtName: string) {
-  const districtData: Record<
-    string,
-    {
-      highlights: string[]
-      underrated: Array<{ name: string; description: string }>
-      images: string[]
-      description?: string
-    }
-  > = {
+export interface DistrictDetailData {
+  highlights: string[]
+  underrated: Array<{ name: string; description: string }>
+  images: string[]
+  description?: string
+}
+
+export function getDistrictDetails(districtName: string): DistrictDetailData {
+  const districtData: Record<string, DistrictDetailData> = {
     Nilgiris: {
       description: "The Queen of Hill Stations, offering misty landscapes, rolling tea gardens, and a cool climate year-round.",
       highlights: [

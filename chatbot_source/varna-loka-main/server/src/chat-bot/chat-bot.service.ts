@@ -14,9 +14,12 @@ export class ChatBotService {
         private configService: ConfigService,
         private userContextService: UserContextService
     ) {
-        this.groq = new Groq({
-            apiKey: this.configService.get<string>('GROQ_API_KEY'),
-        });
+        const apiKey = this.configService.get<string>('GROQ_API_KEY');
+        if (apiKey) {
+            this.groq = new Groq({ apiKey });
+        } else {
+            this.logger.error('GROQ_API_KEY is not defined');
+        }
     }
 
 
@@ -50,6 +53,10 @@ export class ChatBotService {
                     content: prompt
                 }
             ];
+
+            if (!this.groq) {
+                return { message: "I'm currently undergoing maintenance (API Key missing). Please check backend logs." };
+            }
 
             const chatCompletion = await this.groq.chat.completions.create({
                 messages: messages,
